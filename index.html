@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12251d">
+  <meta name="description" content="Dashboard pribadi untuk memantau program naik berat badan.">
+  <title>Weight Gain Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root{--bg:#f4f6f2;--card:#fff;--ink:#17231c;--muted:#758078;--green:#236b49;--green2:#dceee3;--line:#e7ece7;--amber:#f3b64b;--shadow:0 8px 28px rgba(20,45,30,.07)}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    button,input,textarea{font:inherit} button{cursor:pointer}
+    .app{max-width:760px;margin:auto;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom))}
+    header{background:#12251d;color:#fff;margin:0 -16px 18px;padding:22px 20px 25px;border-radius:0 0 26px 26px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:13px;color:#b9d3c3;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+    h1{font-size:25px;line-height:1.15;margin:6px 0}.sub{color:#c2d2c8;font-size:13px}.pill{background:#234d38;color:#d9f5e4;padding:6px 10px;border-radius:99px;font-size:12px}
+    .hero{margin-top:20px;background:#1b3829;border:1px solid #31533f;border-radius:20px;padding:17px}
+    .hero-row{display:flex;justify-content:space-between;align-items:end}.eyebrow{font-size:12px;color:#c0d3c7}.big{font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:2px}.target{text-align:right;color:#c0d3c7;font-size:12px}.target strong{display:block;color:#fff;font-size:21px}
+    .track{height:9px;background:#385543;border-radius:20px;overflow:hidden;margin:14px 0 7px}.fill{height:100%;background:#8bd5a6;border-radius:20px;width:0}
+    .track-caption{display:flex;justify-content:space-between;color:#c0d3c7;font-size:11px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin:21px 2px 10px}.section-title h2{font-size:17px;margin:0}.hint{font-size:12px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;box-shadow:var(--shadow)}
+    .metric-icon{font-size:20px}.metric{font-size:23px;font-weight:800;margin:5px 0 1px}.metric-label{font-size:12px;color:var(--muted)}
+    .card h3{font-size:15px;margin:0 0 10px}.checklist{display:grid;gap:2px}.check{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px solid #f0f2ef}.check:last-child{border:0}
+    .check input{width:19px;height:19px;accent-color:var(--green)} .check span{flex:1}.check.done span{text-decoration:line-through;color:#8b968e}
+    .btn{border:0;border-radius:12px;padding:11px 14px;background:var(--green);color:#fff;font-weight:700}.btn.secondary{background:#edf3ee;color:var(--green)}.btn.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
+    .row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.field{width:100%;border:1px solid #dce4dc;border-radius:11px;padding:11px;background:#fff;color:var(--ink)}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:9px max(12px,calc((100vw - 720px)/2)) calc(9px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:5}
+    .tab{border:0;background:transparent;color:#78847b;font-size:11px;display:grid;justify-items:center;gap:3px;padding:3px 10px}.tab b{font-size:20px;font-weight:500}.tab.active{color:var(--green);font-weight:800}
+    .page{display:none}.page.active{display:block}.empty{color:var(--muted);font-size:13px;padding:12px 0}
+    .history-item{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);gap:12px}.history-item:last-child{border:0}
+    canvas{width:100%;height:190px;display:block}.notice{background:#fff8e8;border:1px solid #f2e2bd;color:#6e5423;padding:12px;border-radius:13px;font-size:12px}
+    .small{font-size:12px;color:var(--muted)} .spacer{height:8px}
+    @media(min-width:600px){header{margin-top:18px;border-radius:26px}.app{padding-top:8px}}
+  </style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="top"><div><div class="brand">Personal health dashboard</div><h1>Weight Gain Tracker</h1><div class="sub">Pelan bertahap menuju 60 kg 💪</div></div><span class="pill">● Program aktif</span></div>
+  <div class="hero">
+    <div class="hero-row"><div><div class="eyebrow">Berat terakhir</div><div class="big" id="heroWeight">54,0 kg</div></div><div class="target">TARGET<strong>60 kg</strong></div></div>
+    <div class="track"><div class="fill" id="goalFill"></div></div>
+    <div class="track-caption"><span id="progressText">Mulai dari 54 kg</span><span id="remainingText">Sisa 6 kg</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="page active" id="home">
+    <div class="grid">
+      <div class="card"><div class="metric-icon">🔥</div><div class="metric">2.550</div><div class="metric-label">Target kalori / hari</div></div>
+      <div class="card"><div class="metric-icon">🥚</div><div class="metric">90–100 g</div><div class="metric-label">Target protein / hari</div></div>
+    </div>
+    <div class="section-title"><h2>Checklist hari ini</h2><span class="hint" id="checkCount">0/9 selesai</span></div>
+    <div class="card"><div class="checklist" id="dailyChecks"></div><div class="spacer"></div><div class="row"><button class="btn secondary" id="resetChecks">Reset checklist</button><button class="btn" id="saveDay">Simpan hari ini</button></div></div>
+    <div class="section-title"><h2>Ringkasan program</h2></div>
+    <div class="card"><div class="row"><div><div class="metric">3×</div><div class="metric-label">Latihan kekuatan / minggu</div></div><div><div class="metric">7–9 jam</div><div class="metric-label">Tidur / malam</div></div></div></div>
+    <div class="notice" style="margin-top:12px">Timbang badan setiap Minggu pagi setelah ke toilet dan sebelum sarapan. Gunakan timbangan dan kondisi yang sama.</div>
+  </section>
+
+  <section class="page" id="weight">
+    <div class="section-title"><h2>Catat berat badan</h2><span class="hint">Kg</span></div>
+    <div class="card">
+      <div class="formgrid"><div><label for="weightInput">Berat badan</label><input class="field" id="weightInput" type="number" min="25" max="250" step=".1" placeholder="54.0"></div><div><label for="weightDate">Tanggal</label><input class="field" id="weightDate" type="date"></div></div>
+      <div class="spacer"></div><button class="btn" id="addWeight" style="width:100%">Simpan catatan berat</button>
+      <p class="small">Catatan baru pada tanggal yang sama akan menggantikan catatan sebelumnya.</p>
+    </div>
+    <div class="section-title"><h2>Perkembangan berat</h2></div>
+    <div class="card"><canvas id="weightChart" width="650" height="240" aria-label="Grafik perkembangan berat badan"></canvas><div class="small" id="chartHint">Grafik akan muncul setelah kamu mencatat berat badan.</div></div>
+    <div class="section-title"><h2>Riwayat timbang</h2></div>
+    <div class="card" id="weightHistory"><div class="empty">Belum ada riwayat.</div></div>
+  </section>
+
+  <section class="page" id="plan">
+    <div class="section-title"><h2>Menu 7 hari</h2><span class="hint">Contoh praktis</span></div>
+    <div id="mealPlan"></div>
+    <div class="notice" style="margin-top:12px">Harga bahan makanan berbeda tiap daerah. Anggaran tambahan di bawah Rp20.000/hari bisa dipakai untuk telur, tempe, pisang, atau kacang; menu utama tetap mengandalkan makan reguler di rumah/kerja.</div>
+  </section>
+
+  <section class="page" id="training">
+    <div class="section-title"><h2>Latihan tanpa alat</h2><span class="hint">18.00 · 25–40 menit</span></div>
+    <div id="trainingPlan"></div>
+    <div class="notice" style="margin-top:12px">Mulai ringan. Hentikan latihan bila timbul nyeri tajam, pusing, atau sesak yang tidak biasa. Sisakan hari pemulihan karena pekerjaanmu sudah banyak berjalan.</div>
+  </section>
+
+  <section class="page" id="stats">
+    <div class="section-title"><h2>Evaluasi mingguan</h2><span class="hint">Setiap Minggu</span></div>
+    <div class="card">
+      <h3>Catatan evaluasi</h3>
+      <label for="evalDate">Tanggal evaluasi</label><input class="field" id="evalDate" type="date">
+      <div class="spacer"></div>
+      <label for="evalWeight">Berat badan (kg)</label><input class="field" id="evalWeight" type="number" min="25" max="250" step=".1" placeholder="Contoh: 54.4">
+      <div class="spacer"></div>
+      <label for="evalFood">Bagaimana pola makan minggu ini?</label><select class="field" id="evalFood"><option value="">Pilih...</option><option>Konsisten 3 kali makan + camilan</option><option>Sering melewatkan makan</option><option>Nafsu makan menurun</option></select>
+      <div class="spacer"></div>
+      <label for="evalWorkout">Berapa kali latihan?</label><select class="field" id="evalWorkout"><option value="">Pilih...</option><option>0 kali</option><option>1 kali</option><option>2 kali</option><option>3 kali</option><option>4 kali atau lebih</option></select>
+      <div class="spacer"></div>
+      <label for="evalNotes">Kendala / catatan</label><textarea class="field" id="evalNotes" rows="3" placeholder="Contoh: jadwal kerja padat, tidur kurang..."></textarea>
+      <div class="spacer"></div><button class="btn" id="saveEval" style="width:100%">Simpan evaluasi</button>
+    </div>
+    <div class="section-title"><h2>Riwayat evaluasi</h2></div><div class="card" id="evalHistory"><div class="empty">Belum ada evaluasi.</div></div>
+    <div class="section-title"><h2>Data & cadangan</h2></div>
+    <div class="card"><p class="small">Data tersimpan di browser/perangkat ini. Ekspor cadangan secara berkala jika ingin memindahkan atau mengamankan data.</p><div class="row"><button class="btn secondary" id="exportData">Ekspor data</button><button class="btn ghost" id="importBtn">Impor data</button></div><input id="importFile" type="file" accept="application/json" hidden><div class="spacer"></div><button class="btn ghost" id="installBtn" style="width:100%;display:none">Pasang aplikasi</button></div>
+  </section>
+</main>
+</div>
+<nav class="tabs">
+  <button class="tab active" data-page="home"><b>⌂</b>Beranda</button>
+  <button class="tab" data-page="weight"><b>⚖</b>Berat</button>
+  <button class="tab" data-page="plan"><b>🍽</b>Menu</button>
+  <button class="tab" data-page="training"><b>💪</b>Latihan</button>
+  <button class="tab" data-page="stats"><b>▥</b>Statistik</button>
+</nav>
+<script>
+const KEY='weightGainTracker_v1';
+const defaults={weights:[{date:new Date().toISOString().slice(0,10),kg:54}],checks:{},evaluations:[]};
+let data=load();
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(defaults)}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt=n=>Number(n).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1});
+const checks=['Sarapan','Camilan pagi','Makan siang','Camilan sore','Makan malam','Latihan / pemulihan sesuai jadwal','Minum air cukup','Tidur 7–9 jam','Makan sumber protein'];
+const meals=[
+['Senin','Nasi + 2 telur','Pisang + kacang','Nasi + ayam + sayur','Roti / susu','Nasi + tempe + tahu'],
+['Selasa','Nasi + 2 telur rebus','Pisang','Nasi + ikan + sayur','Roti isi telur','Nasi + ayam + tempe'],
+['Rabu','Nasi + telur + tempe','Susu + pisang','Nasi + ayam + sayur','Kacang tanah','Nasi + ikan + tahu'],
+['Kamis','Nasi + 2 telur','Pisang','Nasi + ayam + sayur','Roti + susu','Nasi + tempe + tahu'],
+['Jumat','Nasi + telur + tempe','Pisang + kacang','Nasi + ikan + sayur','Susu','Nasi + ayam + tahu'],
+['Sabtu','Nasi goreng telur','Pisang + susu','Nasi + ayam + sayur','Roti isi telur','Nasi + ikan + tempe'],
+['Minggu','Nasi + telur + tempe','Pisang','Nasi + ikan / ayam','Susu + kacang','Nasi + tahu + telur']
+];
+const workouts=[
+['Senin · Tubuh atas',[['Push-up','3 × 8–12'],['Knee push-up (bila perlu)','2 × 10'],['Plank','3 × 20–30 detik']]],
+['Rabu · Kaki & perut',[['Squat','3 × 12–15'],['Reverse lunge','2 × 10 per kaki'],['Glute bridge','3 × 12']]],
+['Jumat · Seluruh tubuh',[['Incline push-up','3 × 10'],['Squat','3 × 15'],['Bird-dog','2 × 10 per sisi']]],
+['Hari lain','Pemulihan, peregangan ringan, dan aktivitas harian biasa.']
+];
+function renderHome(){
+ const done=data.checks[today()]||[]; const el=document.getElementById('dailyChecks');
+ el.innerHTML=checks.map((c,i)=>`<label class="check ${done.includes(i)?'done':''}"><input type="checkbox" data-check="${i}" ${done.includes(i)?'checked':''}><span>${c}</span></label>`).join('');
+ document.querySelectorAll('[data-check]').forEach(x=>x.addEventListener('change',e=>{let a=data.checks[today()]||[];let i=+e.target.dataset.check;a=e.target.checked?[...new Set([...a,i])]:a.filter(v=>v!==i);data.checks[today()]=a;localStorage.setItem(KEY,JSON.stringify(data));renderHome()}));
+ document.getElementById('checkCount').textContent=`${done.length}/${checks.length} selesai`;
+ document.getElementById('resetChecks').onclick=()=>{data.checks[today()]=[];persist()};
+ document.getElementById('saveDay').onclick=()=>alert('Checklist hari ini tersimpan di perangkat ini.');
+}
+function renderHeader(){
+ const sorted=[...data.weights].sort((a,b)=>b.date.localeCompare(a.date));const w=sorted[0]?.kg??54;
+ document.getElementById('heroWeight').textContent=fmt(w)+' kg';
+ const progress=Math.max(0,Math.min(100,(w-54)/6*100));
+ document.getElementById('goalFill').style.width=progress+'%';
+ document.getElementById('progressText').textContent=`${fmt(w)} kg dari target 60 kg`;
+ document.getElementById('remainingText').textContent=w>=60?'Target tercapai!':`Sisa ${fmt(60-w)} kg`;
+}
+function renderWeights(){
+ const sorted=[...data.weights].sort((a,b)=>b.date.localeCompare(a.date));
+ document.getElementById('weightHistory').innerHTML=sorted.length?sorted.map(x=>`<div class="history-item"><span>${new Date(x.date+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</span><strong>${fmt(x.kg)} kg</strong></div>`).join(''):'<div class="empty">Belum ada riwayat.</div>';
+ const c=document.getElementById('weightChart'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+ const asc=[...data.weights].sort((a,b)=>a.date.localeCompare(b.date));
+ if(asc.length<2){document.getElementById('chartHint').textContent='Tambahkan minimal dua catatan berat untuk melihat grafik.';return}
+ document.getElementById('chartHint').textContent='Grafik berdasarkan catatan timbang yang kamu simpan.';
+ const vals=asc.map(x=>x.kg),min=Math.min(...vals,54)-.5,max=Math.max(...vals,60)+.5;
+ const px=i=>45+i*(c.width-75)/(asc.length-1),py=v=>c.height-30-(v-min)/(max-min)*(c.height-60);
+ ctx.strokeStyle='#e5ece6';ctx.lineWidth=1;for(let i=0;i<4;i++){let y=30+i*(c.height-60)/3;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(c.width-15,y);ctx.stroke()}
+ ctx.strokeStyle='#236b49';ctx.lineWidth=4;ctx.beginPath();asc.forEach((v,i)=>i?ctx.lineTo(px(i),py(v.kg)):ctx.moveTo(px(i),py(v.kg)));ctx.stroke();
+ asc.forEach((v,i)=>{ctx.fillStyle='#236b49';ctx.beginPath();ctx.arc(px(i),py(v.kg),5,0,Math.PI*2);ctx.fill()});
+ ctx.fillStyle='#758078';ctx.font='13px system-ui';ctx.fillText(fmt(min)+' kg',2,c.height-27);ctx.fillText(fmt(max)+' kg',2,25);
+}
+function renderPlan(){document.getElementById('mealPlan').innerHTML=meals.map(d=>`<div class="card" style="margin-bottom:10px"><h3>${d[0]}</h3>${['Sarapan','Camilan pagi','Makan siang','Camilan sore','Makan malam'].map((l,i)=>`<div class="history-item"><span class="small">${l}</span><strong style="font-size:13px;text-align:right">${d[i+1]}</strong></div>`).join('')}</div>`).join('')}
+function renderTraining(){document.getElementById('trainingPlan').innerHTML=workouts.map(w=>`<div class="card" style="margin-bottom:10px"><h3>${w[0]}</h3>${Array.isArray(w[1])?w[1].map(x=>`<div class="history-item"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join(''):`<p class="small">${w[1]}</p>`}</div>`).join('')}
+function renderEvals(){const el=document.getElementById('evalHistory');el.innerHTML=data.evaluations.length?[...data.evaluations].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<div class="history-item"><div><strong>${new Date(e.date+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</strong><div class="small">${e.food||'Pola makan belum dicatat'} · Latihan: ${e.workout||'-'}</div>${e.notes?`<div class="small">${escapeHtml(e.notes)}</div>`:''}</div><strong>${e.kg?fmt(e.kg)+' kg':'-'}</strong></div>`).join(''):'<div class="empty">Belum ada evaluasi.</div>'}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderAll(){renderHeader();renderHome();renderWeights();renderPlan();renderTraining();renderEvals()}
+document.getElementById('weightDate').value=today();document.getElementById('evalDate').value=today();
+document.getElementById('addWeight').onclick=()=>{let kg=Number(document.getElementById('weightInput').value),date=document.getElementById('weightDate').value;if(!kg||kg<25||kg>250||!date)return alert('Masukkan berat dan tanggal yang valid.');data.weights=data.weights.filter(x=>x.date!==date);data.weights.push({date,kg});persist();document.getElementById('weightInput').value='';alert('Berat badan berhasil disimpan.')};
+document.getElementById('saveEval').onclick=()=>{let e={date:document.getElementById('evalDate').value,kg:Number(document.getElementById('evalWeight').value)||null,food:document.getElementById('evalFood').value,workout:document.getElementById('evalWorkout').value,notes:document.getElementById('evalNotes').value};if(!e.date)return alert('Pilih tanggal evaluasi.');data.evaluations=data.evaluations.filter(x=>x.date!==e.date);data.evaluations.push(e);if(e.kg){data.weights=data.weights.filter(x=>x.date!==e.date);data.weights.push({date:e.date,kg:e.kg})}persist();alert('Evaluasi berhasil disimpan.')};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===b.dataset.page));if(b.dataset.page==='weight')renderWeights()});
+document.getElementById('exportData').onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='weight-gain-backup.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.weights)||!Array.isArray(d.evaluations))throw Error();data=d;persist();alert('Data berhasil diimpor.')}catch{alert('File cadangan tidak valid.')}};
+let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block'});
+document.getElementById('installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null}else alert('Gunakan menu browser lalu pilih Tambahkan ke layar utama.')};
+if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+renderAll();
+</script>
+</body></html>

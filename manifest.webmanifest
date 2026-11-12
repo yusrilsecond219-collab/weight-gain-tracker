@@ -1,0 +1,17 @@
+{
+  "name": "Weight Gain Tracker",
+  "short_name": "Weight Gain",
+  "description": "Dashboard pribadi program naik berat badan",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f2",
+  "theme_color": "#12251d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
